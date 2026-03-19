@@ -14,12 +14,12 @@
 
 ## Why RoVLA-Nano?
 
-Existing VLA systems (RT-2, OpenVLA, TinyVLA) are evaluated on server-class GPUs and tabletop benchmarks. Our systematic review of 83 VLA papers confirmed a precise, unaddressed gap:
+Existing VLA systems (RT-2, OpenVLA, TinyVLA) are evaluated on server-class GPUs and tabletop benchmarks. Our on-going systematic review paper based on 100+ VLA models (and published research papers) confirmed a precise, unaddressed gap:
 
-- **No published VLA system has been characterised for worst-case execution time (WCET) on industrial edge hardware**
-- WCET characterisation is absent from the entire reviewed corpus
-- The field sits at IRL 1 at best — collaborative industrial deployment requires IRL 3 minimum
-- No VLA system has been evaluated against ISO 10218 or ISO/TS 15066 functional safety standards
+- **No published VLA system has been characterised for worst-case execution time (WCET) on industrial edge hardware** (even if deployed somewhere, not reported yet or disclosed)
+- WCET characterisation is absent from the entire reviewed corpus.
+- The field sits at IRL 1 at best — collaborative industrial deployment requires IRL 3 minimum (IRL means Industry Readiness Level, a term defined by our systematic review work which is yet to be published).
+- No VLA system has been evaluated against ISO 10218 or ISO/TS 15066 functional safety standards (report can be found in our systematic review paper).
 
 RoVLA-Nano is the foundation for closing that gap — a clean, ROS2-native architecture that can be incrementally hardened toward real industrial deployment criteria.
 
@@ -144,11 +144,11 @@ vla_system/
 This project is developed alongside a systematic review:
 
 > **"Lightweight Vision-Language-Action Models for Real-Time Collaborative Industrial Manipulation: System Constraints, Deployment Strategies, and Research Directions"**
-> Ashfakul Karim Kausik, Tahsin Ahmed Refat, Saif Alvi
-> Military Institute of Science and Technology / Khulna University of Engineering and Technology
-> *Preprint coming soon*
+> Ashfakul Karim Kausik, Tahsin Ahmed Refat, Saif Alvi.
+> Military Institute of Science and Technology / Khulna University of Engineering and Technology.
+> *Preprint coming soon.*
 
-The review introduces the IRL-VLA framework and identifies WCET characterisation as the primary unaddressed gap across 83 reviewed papers.
+The review introduces the IRL-VLA framework and identifies WCET characterisation as the primary unaddressed gap across 100+ existing VLA models and their reports.
 
 ---
 
