@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VLA Control Panel</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --border: #2a2d3a;
+    --text: #e2e5f0;
+    --muted: #7a7f94;
+    --accent: #5b8dee;
+    --green: #3ecf8e;
+    --red: #f26b5e;
+    --amber: #f5a623;
+    --mono: 'Fira Mono', 'Consolas', monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    font-size: 14px;
+    height: 100vh;
+    display: grid;
+    grid-template-rows: 50px 1fr;
+    grid-template-columns: 1fr 320px;
+  }
+
+  /* Header */
+  header {
+    grid-column: 1 / -1;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 24px;
+    gap: 16px;
+  }
+  .logo { font-size: 16px; font-weight: 600; letter-spacing: 0.04em; }
+  .logo span { color: var(--accent); }
+  .status-badge {
+    margin-left: auto;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    background: #2a2d3a;
+    border: 1px solid var(--border);
+    transition: all 0.3s;
+  }
+  .status-badge.idle     { border-color: var(--green);  color: var(--green); }
+  .status-badge.working  { border-color: var(--amber);  color: var(--amber); }
+  .status-badge.error    { border-color: var(--red);    color: var(--red); }
+  .status-badge.executing{ border-color: var(--accent); color: var(--accent); }
+
+  /* Main area */
+  main {
+    display: flex;
+    flex-direction: column;
+    padding: 24px;
+    gap: 16px;
+    overflow: hidden;
+  }
+
+  /* Command input */
+  .cmd-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+  }
+  .cmd-box h3 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 12px; }
+  .cmd-row { display: flex; gap: 10px; }
+  .cmd-row input {
+    flex: 1;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    padding: 10px 14px;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .cmd-row input:focus { border-color: var(--accent); }
+  .cmd-row button {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+  .cmd-row button:hover { opacity: 0.85; }
+  .cmd-row button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* Quick commands */
+  .quick-cmds { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  .quick-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--muted);
+    padding: 5px 12px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .quick-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* Log */
+  .log-box {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .log-box h3 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 12px; flex-shrink: 0; }
+  .log-entries {
+    flex: 1;
+    overflow-y: auto;
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.7;
+  }
+  .log-entry { display: flex; gap: 12px; align-items: flex-start; padding: 3px 0; }
+  .log-time { color: var(--muted); flex-shrink: 0; font-size: 11px; padding-top: 2px; }
+  .log-msg { color: var(--text); }
+  .log-msg.sent    { color: var(--accent); }
+  .log-msg.success { color: var(--green); }
+  .log-msg.error   { color: var(--red); }
+  .log-msg.info    { color: var(--muted); }
+  .log-msg.working { color: var(--amber); }
+
+  /* Sidebar */
+  aside {
+    background: var(--surface);
+    border-left: 1px solid var(--border);
+    padding: 20px 16px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .panel { }
+  .panel-title {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+
+  /* Pipeline viz */
+  .pipeline {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+  .p-node {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    transition: all 0.3s;
+  }
+  .p-node.active {
+    border-color: var(--accent);
+    background: rgba(91, 141, 238, 0.08);
+  }
+  .p-node.done {
+    border-color: var(--green);
+    background: rgba(62, 207, 142, 0.06);
+  }
+  .p-node.error {
+    border-color: var(--red);
+    background: rgba(242, 107, 94, 0.06);
+  }
+  .p-node-icon {
+    width: 28px; height: 28px;
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px;
+    background: var(--border);
+    flex-shrink: 0;
+  }
+  .p-node-info { flex: 1; min-width: 0; }
+  .p-node-name { font-weight: 500; font-size: 13px; }
+  .p-node-sub  { color: var(--muted); font-size: 11px; margin-top: 1px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .p-arrow { text-align: center; color: var(--border); font-size: 16px; padding: 4px 0; }
+
+  /* Objects table */
+  .obj-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .obj-table th {
+    color: var(--muted); font-weight: 500;
+    padding: 4px 6px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  .obj-table td { padding: 6px 6px; border-bottom: 1px solid rgba(42,45,58,0.5); }
+  .obj-label {
+    display: inline-block;
+    background: rgba(91,141,238,0.12);
+    color: var(--accent);
+    border-radius: 4px;
+    padding: 1px 8px;
+    font-weight: 500;
+  }
+  .conf-bar-bg {
+    background: var(--border);
+    border-radius: 3px;
+    height: 4px;
+    width: 60px;
+    overflow: hidden;
+  }
+  .conf-bar { height: 100%; background: var(--green); border-radius: 3px; transition: width 0.3s; }
+
+  .no-objects { color: var(--muted); font-size: 12px; font-style: italic; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<header>
+  <span class="logo">VLA <span>Control</span></span>
+  <span style="color:var(--muted); font-size:12px;">Franka Panda · ROS2 Humble</span>
+  <span class="status-badge idle" id="status-badge">● idle</span>
+</header>
+
+<main>
+  <div class="cmd-box">
+    <h3>Natural Language Command</h3>
+    <div class="cmd-row">
+      <input type="text" id="cmd-input"
+             placeholder="Pick the screw and place it in bin A"
+             autocomplete="off"/>
+      <button id="send-btn" onclick="sendCommand()">Send ↗</button>
+    </div>
+    <div class="quick-cmds">
+      <button class="quick-btn" onclick="setCmd('Pick the screw')">Pick the screw</button>
+      <button class="quick-btn" onclick="setCmd('Pick the smallest rivet and place it in bin A')">Smallest rivet → bin A</button>
+      <button class="quick-btn" onclick="setCmd('Pick the bolt and place it in bin B')">Bolt → bin B</button>
+      <button class="quick-btn" onclick="setCmd('Pick the screw and then the rivet')">Screw then rivet</button>
+      <button class="quick-btn" onclick="setCmd('Inspect the washer')">Inspect washer</button>
+    </div>
+  </div>
+
+  <div class="log-box">
+    <h3>System Log</h3>
+    <div class="log-entries" id="log"></div>
+  </div>
+</main>
+
+<aside>
+  <div class="panel">
+    <div class="panel-title">Pipeline Status</div>
+    <div class="pipeline">
+      <div class="p-node" id="p-language">
+        <div class="p-node-icon">💬</div>
+        <div class="p-node-info">
+          <div class="p-node-name">Language</div>
+          <div class="p-node-sub" id="p-language-sub">waiting…</div>
+        </div>
+      </div>
+      <div class="p-arrow">↓</div>
+      <div class="p-node" id="p-vision">
+        <div class="p-node-icon">👁</div>
+        <div class="p-node-info">
+          <div class="p-node-name">Vision</div>
+          <div class="p-node-sub" id="p-vision-sub">waiting…</div>
+        </div>
+      </div>
+      <div class="p-arrow">↓</div>
+      <div class="p-node" id="p-action">
+        <div class="p-node-icon">🤖</div>
+        <div class="p-node-info">
+          <div class="p-node-name">Action</div>
+          <div class="p-node-sub" id="p-action-sub">waiting…</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Detected Objects</div>
+    <div id="objects-container">
+      <p class="no-objects">No objects detected yet.</p>
+    </div>
+  </div>
+
+  <div class="panel" style="margin-top: auto;">
+    <div class="panel-title">Connection</div>
+    <div style="font-size:12px; color: var(--muted); line-height:1.7;">
+      <div>rosbridge: <span id="conn-status" style="color:var(--red)">disconnected</span></div>
+      <div style="margin-top:6px; font-size:11px; opacity:0.7;">
+        This UI connects to rosbridge_websocket<br>
+        running on port 9090.
+      </div>
+      <button onclick="connectRosBridge()" style="margin-top:10px; width:100%; background:transparent; border:1px solid var(--border); color:var(--muted); border-radius:6px; padding:6px; cursor:pointer; font-size:12px;">
+        Reconnect
+      </button>
+    </div>
+  </div>
+</aside>
+
+<script>
+// ---- State ----
+let ros = null;
+let cmdPub = null;
+let statusSub = null;
+let detSub = null;
+let detectedObjects = {};
+let systemState = 'idle';
+
+// ---- rosbridge connection ----
+function connectRosBridge() {
+  if (typeof ROSLIB === 'undefined') {
+    addLog('info', 'ROSLIB not loaded — running in demo mode (no ROS connection).');
+    startDemoMode();
+    return;
+  }
+
+  ros = new ROSLIB.Ros({ url: 'ws://localhost:9090' });
+
+  ros.on('connection', () => {
+    document.getElementById('conn-status').textContent = 'connected';
+    document.getElementById('conn-status').style.color = 'var(--green)';
+    addLog('success', 'Connected to ROS bridge.');
+    setupTopics();
+  });
+
+  ros.on('error', () => {
+    document.getElementById('conn-status').textContent = 'error';
+    document.getElementById('conn-status').style.color = 'var(--red)';
+    addLog('error', 'ROS bridge connection error.');
+  });
+
+  ros.on('close', () => {
+    document.getElementById('conn-status').textContent = 'disconnected';
+    document.getElementById('conn-status').style.color = 'var(--red)';
+    addLog('info', 'ROS bridge disconnected.');
+  });
+}
+
+function setupTopics() {
+  // Publisher
+  cmdPub = new ROSLIB.Topic({
+    ros, name: '/raw_command',
+    messageType: 'std_msgs/String'
+  });
+
+  // System status
+  statusSub = new ROSLIB.Topic({
+    ros, name: '/system_status',
+    messageType: 'std_msgs/String'
+  });
+  statusSub.subscribe(msg => {
+    try {
+      const d = JSON.parse(msg.data);
+      updateSystemState(d.state, d.detail);
+    } catch(e) {}
+  });
+
+  // Detections
+  detSub = new ROSLIB.Topic({
+    ros, name: '/detected_objects',
+    messageType: 'vla_interfaces/ObjectDetection'
+  });
+  detSub.subscribe(msg => {
+    detectedObjects[msg.label] = msg;
+    renderObjects();
+  });
+}
+
+// ---- Commands ----
+function sendCommand() {
+  const input = document.getElementById('cmd-input');
+  const text  = input.value.trim();
+  if (!text) return;
+
+  addLog('sent', `→ "${text}"`);
+  updatePipelineStage('language', 'active', 'parsing…');
+
+  if (cmdPub) {
+    cmdPub.publish(new ROSLIB.Message({ data: text }));
+  } else {
+    // Demo mode: simulate pipeline
+    simulatePipeline(text);
+  }
+
+  input.value = '';
+}
+
+function setCmd(text) {
+  document.getElementById('cmd-input').value = text;
+  document.getElementById('cmd-input').focus();
+}
+
+document.getElementById('cmd-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') sendCommand();
+});
+
+// ---- State updates ----
+function updateSystemState(state, detail) {
+  systemState = state;
+  const badge = document.getElementById('status-badge');
+  badge.className = `status-badge ${state}`;
+  badge.textContent = `● ${state}`;
+
+  const cls = {
+    idle: 'info', working: 'working',
+    executing: 'working', error: 'error'
+  }[state] || 'info';
+
+  addLog(cls, detail);
+
+  if (state === 'working') {
+    updatePipelineStage('language', 'done', 'parsed');
+    updatePipelineStage('vision', 'active', 'searching…');
+  } else if (state === 'executing') {
+    updatePipelineStage('vision', 'done', 'object found');
+    updatePipelineStage('action', 'active', 'moving…');
+  } else if (state === 'idle') {
+    updatePipelineStage('action', 'done', 'complete');
+    setTimeout(() => {
+      ['language','vision','action'].forEach(n =>
+        updatePipelineStage(n, '', 'waiting…'));
+    }, 2000);
+  } else if (state === 'error') {
+    ['language','vision','action'].forEach(n =>
+      updatePipelineStage(n, 'error', ''));
+  }
+}
+
+function updatePipelineStage(id, state, sub) {
+  const el = document.getElementById(`p-${id}`);
+  const subEl = document.getElementById(`p-${id}-sub`);
+  el.className = 'p-node' + (state ? ` ${state}` : '');
+  if (sub) subEl.textContent = sub;
+}
+
+// ---- Log ----
+function addLog(type, msg) {
+  const log = document.getElementById('log');
+  const now = new Date();
+  const t   = now.toTimeString().slice(0,8);
+  const entry = document.createElement('div');
+  entry.className = 'log-entry';
+  entry.innerHTML = `<span class="log-time">${t}</span><span class="log-msg ${type}">${escHtml(msg)}</span>`;
+  log.appendChild(entry);
+  log.scrollTop = log.scrollHeight;
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ---- Objects table ----
+function renderObjects() {
+  const container = document.getElementById('objects-container');
+  const entries   = Object.values(detectedObjects);
+  if (entries.length === 0) {
+    container.innerHTML = '<p class="no-objects">No objects detected yet.</p>';
+    return;
+  }
+  let html = `<table class="obj-table">
+    <tr><th>Object</th><th>Conf</th><th>Z (m)</th></tr>`;
+  entries.sort((a,b) => b.confidence - a.confidence).forEach(d => {
+    const pct = Math.round(d.confidence * 100);
+    html += `<tr>
+      <td><span class="obj-label">${escHtml(d.label)}</span></td>
+      <td>
+        <div class="conf-bar-bg">
+          <div class="conf-bar" style="width:${pct}%"></div>
+        </div>
+      </td>
+      <td style="color:var(--muted)">${d.z ? d.z.toFixed(2) : '—'}</td>
+    </tr>`;
+  });
+  html += '</table>';
+  container.innerHTML = html;
+}
+
+// ---- Demo mode (no ROS connection) ----
+function startDemoMode() {
+  // Simulate periodic detections
+  const mockObjects = [
+    { label: 'screw',  confidence: 0.91, x: 0.30, y: 0.10, z: 0.48 },
+    { label: 'rivet',  confidence: 0.87, x: 0.35, y: 0.05, z: 0.52 },
+    { label: 'washer', confidence: 0.78, x: 0.28, y: 0.14, z: 0.50 },
+    { label: 'bolt',   confidence: 0.83, x: 0.40, y: 0.08, z: 0.46 },
+  ];
+  setInterval(() => {
+    mockObjects.forEach(o => { detectedObjects[o.label] = o; });
+    renderObjects();
+  }, 1000);
+  addLog('info', 'Demo mode: simulated detections active.');
+}
+
+function simulatePipeline(text) {
+  const obj = text.match(/screw|rivet|bolt|nut|washer/i)?.[0]?.toLowerCase() || 'object';
+  const bin = text.match(/bin\s?[a-c]/i)?.[0]?.replace(' ','') || null;
+
+  updatePipelineStage('language', 'active', 'parsing…');
+  setTimeout(() => {
+    updatePipelineStage('language', 'done', `action: pick${bin?'_and_place':''}`);
+    updatePipelineStage('vision', 'active', `searching ${obj}…`);
+    addLog('working', `Looking for ${obj}…`);
+  }, 500);
+  setTimeout(() => {
+    updatePipelineStage('vision', 'done', `${obj} found`);
+    updatePipelineStage('action', 'active', 'executing…');
+    addLog('working', `Executing pick on ${obj}…`);
+  }, 1500);
+  setTimeout(() => {
+    updatePipelineStage('action', 'done', bin ? `placed in ${bin}` : 'picked');
+    addLog('success', `✓ ${obj} successfully ${bin ? `picked and placed in ${bin}` : 'picked'}.`);
+    setTimeout(() => {
+      ['language','vision','action'].forEach(n =>
+        updatePipelineStage(n, '', 'waiting…'));
+    }, 3000);
+  }, 3500);
+}
+
+// ---- Init ----
+addLog('info', 'VLA Control Panel loaded. Connecting to ROS bridge…');
+connectRosBridge();
+
+// Attempt to load ROSLIB dynamically
+if (typeof ROSLIB === 'undefined') {
+  const s = document.createElement('script');
+  s.src = 'https://cdn.jsdelivr.net/npm/roslib@1/build/roslib.min.js';
+  s.onload = connectRosBridge;
+  s.onerror = () => {
+    addLog('info', 'Running in demo mode (no ROS bridge available).');
+    startDemoMode();
+  };
+  document.head.appendChild(s);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,317 @@
+<?xml version="1.0"?>
+<!--
+  VLA Gazebo World
+  ─────────────────
+  Contains:
+    - Ground plane + ambient lighting
+    - Workbench (table at 0.77 m height, matching Franka Panda reach)
+    - Three sorting bins (A, B, C) positioned at the far edge
+    - Fastener objects: 3× screws, 2× rivets, 1× washer, 1× bolt
+
+  Spawn with:
+    ros2 launch vla_system gazebo.launch.py
+-->
+<sdf version="1.7">
+  <world name="vla_world">
+
+    <!-- ── Physics ────────────────────────────────────────────────────── -->
+    <physics name="default_physics" default="0" type="ode">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1</real_time_factor>
+      <real_time_update_rate>1000</real_time_update_rate>
+    </physics>
+
+    <!-- ── Plugins ─────────────────────────────────────────────────────── -->
+    <plugin filename="libgazebo_ros_factory.so" name="gazebo_ros_factory"/>
+
+    <!-- ── Lighting ────────────────────────────────────────────────────── -->
+    <light name="sun" type="directional">
+      <cast_shadows>1</cast_shadows>
+      <pose>0 0 10 0 -0 0</pose>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <light name="overhead" type="point">
+      <pose>0.4 0 1.5 0 0 0</pose>
+      <diffuse>0.6 0.6 0.6 1</diffuse>
+      <specular>0.1 0.1 0.1 1</specular>
+      <attenuation>
+        <range>5</range>
+        <linear>0.2</linear>
+      </attenuation>
+    </light>
+
+    <!-- ── Ground plane ────────────────────────────────────────────────── -->
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry><plane><normal>0 0 1</normal></plane></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><plane><normal>0 0 1</normal><size>20 20</size></plane></geometry>
+          <material>
+            <ambient>0.4 0.4 0.4 1</ambient>
+            <diffuse>0.4 0.4 0.4 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- ── Workbench ────────────────────────────────────────────────────── -->
+    <!-- Table surface at z=0.77 (Franka Panda mounted on top) -->
+    <model name="workbench">
+      <static>true</static>
+      <pose>0.5 0 0 0 0 0</pose>
+      <link name="table_top">
+        <pose>0 0 0.77 0 0 0</pose>
+        <collision name="collision">
+          <geometry>
+            <box><size>1.2 0.8 0.04</size></box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box><size>1.2 0.8 0.04</size></box>
+          </geometry>
+          <material>
+            <ambient>0.7 0.6 0.4 1</ambient>
+            <diffuse>0.7 0.6 0.4 1</diffuse>
+          </material>
+        </visual>
+      </link>
+      <!-- Table legs (4×) -->
+      <link name="leg_fl"><pose>-0.56 -0.36 0.385 0 0 0</pose>
+        <collision name="c"><geometry><box><size>0.04 0.04 0.77</size></box></geometry></collision>
+        <visual name="v"><geometry><box><size>0.04 0.04 0.77</size></box></geometry>
+          <material><ambient>0.5 0.4 0.3 1</ambient><diffuse>0.5 0.4 0.3 1</diffuse></material>
+        </visual>
+      </link>
+      <link name="leg_fr"><pose>-0.56  0.36 0.385 0 0 0</pose>
+        <collision name="c"><geometry><box><size>0.04 0.04 0.77</size></box></geometry></collision>
+        <visual name="v"><geometry><box><size>0.04 0.04 0.77</size></box></geometry>
+          <material><ambient>0.5 0.4 0.3 1</ambient><diffuse>0.5 0.4 0.3 1</diffuse></material>
+        </visual>
+      </link>
+      <link name="leg_bl"><pose> 0.56 -0.36 0.385 0 0 0</pose>
+        <collision name="c"><geometry><box><size>0.04 0.04 0.77</size></box></geometry></collision>
+        <visual name="v"><geometry><box><size>0.04 0.04 0.77</size></box></geometry>
+          <material><ambient>0.5 0.4 0.3 1</ambient><diffuse>0.5 0.4 0.3 1</diffuse></material>
+        </visual>
+      </link>
+      <link name="leg_br"><pose> 0.56  0.36 0.385 0 0 0</pose>
+        <collision name="c"><geometry><box><size>0.04 0.04 0.77</size></box></geometry></collision>
+        <visual name="v"><geometry><box><size>0.04 0.04 0.77</size></box></geometry>
+          <material><ambient>0.5 0.4 0.3 1</ambient><diffuse>0.5 0.4 0.3 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- ── Sorting Bin A (red) ─────────────────────────────────────────── -->
+    <model name="bin_A">
+      <static>true</static>
+      <pose>0.70 -0.20 0.79 0 0 0</pose>
+      <link name="base">
+        <collision name="c"><geometry><box><size>0.12 0.10 0.005</size></box></geometry></collision>
+        <visual name="v"><geometry><box><size>0.12 0.10 0.005</size></box></geometry>
+          <material><ambient>0.8 0.1 0.1 1</ambient><diffuse>0.8 0.1 0.1 1</diffuse></material>
+        </visual>
+      </link>
+      <link name="wall_front"><pose>0 -0.05 0.03 0 0 0</pose>
+        <collision name="c"><geometry><box><size>0.12 0.005 0.06</size></box></geometry></collision>
+        <visual name="v"><geometry><box><size>0.12 0.005 0.06</size></box></geometry>
+          <material><ambient>0.8 0.1 0.1 1</ambient><diffuse>0.8 0.1 0.1 1</diffuse></material>
+        </visual>
+      </link>
+      <link name="wall_back"><pose>0  0.05 0.03 0 0 0</pose>
+        <collision name="c"><geometry><box><size>0.12 0.005 0.06</size></box></geometry></collision>
+        <visual name="v"><geometry><box><size>0.12 0.005 0.06</size></box></geometry>
+          <material><ambient>0.8 0.1 0.1 1</ambient><diffuse>0.8 0.1 0.1 1</diffuse></material>
+        </visual>
+      </link>
+      <link name="wall_left"><pose>-0.06 0 0.03 0 0 0</pose>
+        <collision name="c"><geometry><box><size>0.005 0.10 0.06</size></box></geometry></collision>
+        <visual name="v"><geometry><box><size>0.005 0.10 0.06</size></box></geometry>
+          <material><ambient>0.8 0.1 0.1 1</ambient><diffuse>0.8 0.1 0.1 1</diffuse></material>
+        </visual>
+      </link>
+      <link name="wall_right"><pose> 0.06 0 0.03 0 0 0</pose>
+        <collision name="c"><geometry><box><size>0.005 0.10 0.06</size></box></geometry></collision>
+        <visual name="v"><geometry><box><size>0.005 0.10 0.06</size></box></geometry>
+          <material><ambient>0.8 0.1 0.1 1</ambient><diffuse>0.8 0.1 0.1 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- ── Sorting Bin B (green) ──────────────────────────────────────── -->
+    <model name="bin_B">
+      <static>true</static>
+      <pose>0.70 0.00 0.79 0 0 0</pose>
+      <link name="base">
+        <collision name="c"><geometry><box><size>0.12 0.10 0.005</size></box></geometry></collision>
+        <visual name="v"><geometry><box><size>0.12 0.10 0.005</size></box></geometry>
+          <material><ambient>0.1 0.7 0.1 1</ambient><diffuse>0.1 0.7 0.1 1</diffuse></material>
+        </visual>
+      </link>
+      <link name="wall_front"><pose>0 -0.05 0.03 0 0 0</pose>
+        <collision name="c"><geometry><box><size>0.12 0.005 0.06</size></box></geometry></collision>
+        <visual name="v"><geometry><box><size>0.12 0.005 0.06</size></box></geometry>
+          <material><ambient>0.1 0.7 0.1 1</ambient><diffuse>0.1 0.7 0.1 1</diffuse></material>
+        </visual>
+      </link>
+      <link name="wall_back"><pose>0  0.05 0.03 0 0 0</pose>
+        <collision name="c"><geometry><box><size>0.12 0.005 0.06</size></box></geometry></collision>
+        <visual name="v"><geometry><box><size>0.12 0.005 0.06</size></box></geometry>
+          <material><ambient>0.1 0.7 0.1 1</ambient><diffuse>0.1 0.7 0.1 1</diffuse></material>
+        </visual>
+      </link>
+      <link name="wall_left"><pose>-0.06 0 0.03 0 0 0</pose>
+        <collision name="c"><geometry><box><size>0.005 0.10 0.06</size></box></geometry></collision>
+        <visual name="v"><geometry><box><size>0.005 0.10 0.06</size></box></geometry>
+          <material><ambient>0.1 0.7 0.1 1</ambient><diffuse>0.1 0.7 0.1 1</diffuse></material>
+        </visual>
+      </link>
+      <link name="wall_right"><pose> 0.06 0 0.03 0 0 0</pose>
+        <collision name="c"><geometry><box><size>0.005 0.10 0.06</size></box></geometry></collision>
+        <visual name="v"><geometry><box><size>0.005 0.10 0.06</size></box></geometry>
+          <material><ambient>0.1 0.7 0.1 1</ambient><diffuse>0.1 0.7 0.1 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- ── Sorting Bin C (blue) ───────────────────────────────────────── -->
+    <model name="bin_C">
+      <static>true</static>
+      <pose>0.70 0.20 0.79 0 0 0</pose>
+      <link name="base">
+        <collision name="c"><geometry><box><size>0.12 0.10 0.005</size></box></geometry></collision>
+        <visual name="v"><geometry><box><size>0.12 0.10 0.005</size></box></geometry>
+          <material><ambient>0.1 0.2 0.8 1</ambient><diffuse>0.1 0.2 0.8 1</diffuse></material>
+        </visual>
+      </link>
+      <link name="wall_front"><pose>0 -0.05 0.03 0 0 0</pose>
+        <collision name="c"><geometry><box><size>0.12 0.005 0.06</size></box></geometry></collision>
+        <visual name="v"><geometry><box><size>0.12 0.005 0.06</size></box></geometry>
+          <material><ambient>0.1 0.2 0.8 1</ambient><diffuse>0.1 0.2 0.8 1</diffuse></material>
+        </visual>
+      </link>
+      <link name="wall_back"><pose>0  0.05 0.03 0 0 0</pose>
+        <collision name="c"><geometry><box><size>0.12 0.005 0.06</size></box></geometry></collision>
+        <visual name="v"><geometry><box><size>0.12 0.005 0.06</size></box></geometry>
+          <material><ambient>0.1 0.2 0.8 1</ambient><diffuse>0.1 0.2 0.8 1</diffuse></material>
+        </visual>
+      </link>
+      <link name="wall_left"><pose>-0.06 0 0.03 0 0 0</pose>
+        <collision name="c"><geometry><box><size>0.005 0.10 0.06</size></box></geometry></collision>
+        <visual name="v"><geometry><box><size>0.005 0.10 0.06</size></box></geometry>
+          <material><ambient>0.1 0.2 0.8 1</ambient><diffuse>0.1 0.2 0.8 1</diffuse></material>
+        </visual>
+      </link>
+      <link name="wall_right"><pose> 0.06 0 0.03 0 0 0</pose>
+        <collision name="c"><geometry><box><size>0.005 0.10 0.06</size></box></geometry></collision>
+        <visual name="v"><geometry><box><size>0.005 0.10 0.06</size></box></geometry>
+          <material><ambient>0.1 0.2 0.8 1</ambient><diffuse>0.1 0.2 0.8 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- ── Fastener objects ──────────────────────────────────────────────
+         These are simplified cylinder/box approximations.
+         Replace with proper mesh URDFs for realistic simulation.
+    ─────────────────────────────────────────────────────────────────── -->
+
+    <!-- Screw 1 (large) -->
+    <model name="screw_1">
+      <pose>0.35 -0.05 0.785 0 0 0</pose>
+      <link name="link">
+        <collision name="c"><geometry><cylinder><radius>0.006</radius><length>0.025</length></cylinder></geometry></collision>
+        <visual name="v">
+          <geometry><cylinder><radius>0.006</radius><length>0.025</length></cylinder></geometry>
+          <material><ambient>0.6 0.6 0.6 1</ambient><diffuse>0.7 0.7 0.7 1</diffuse></material>
+        </visual>
+        <inertial><mass>0.010</mass></inertial>
+      </link>
+    </model>
+
+    <!-- Screw 2 (small) -->
+    <model name="screw_2">
+      <pose>0.30 0.08 0.785 0 0 0.3</pose>
+      <link name="link">
+        <collision name="c"><geometry><cylinder><radius>0.004</radius><length>0.018</length></cylinder></geometry></collision>
+        <visual name="v">
+          <geometry><cylinder><radius>0.004</radius><length>0.018</length></cylinder></geometry>
+          <material><ambient>0.6 0.6 0.6 1</ambient><diffuse>0.7 0.7 0.7 1</diffuse></material>
+        </visual>
+        <inertial><mass>0.006</mass></inertial>
+      </link>
+    </model>
+
+    <!-- Screw 3 (medium) -->
+    <model name="screw_3">
+      <pose>0.42 0.04 0.785 0 0 -0.5</pose>
+      <link name="link">
+        <collision name="c"><geometry><cylinder><radius>0.005</radius><length>0.022</length></cylinder></geometry></collision>
+        <visual name="v">
+          <geometry><cylinder><radius>0.005</radius><length>0.022</length></cylinder></geometry>
+          <material><ambient>0.6 0.6 0.6 1</ambient><diffuse>0.7 0.7 0.7 1</diffuse></material>
+        </visual>
+        <inertial><mass>0.008</mass></inertial>
+      </link>
+    </model>
+
+    <!-- Rivet 1 -->
+    <model name="rivet_1">
+      <pose>0.38 -0.12 0.785 0 0 0</pose>
+      <link name="link">
+        <collision name="c"><geometry><cylinder><radius>0.004</radius><length>0.015</length></cylinder></geometry></collision>
+        <visual name="v">
+          <geometry><cylinder><radius>0.004</radius><length>0.015</length></cylinder></geometry>
+          <material><ambient>0.8 0.5 0.1 1</ambient><diffuse>0.8 0.5 0.1 1</diffuse></material>
+        </visual>
+        <inertial><mass>0.004</mass></inertial>
+      </link>
+    </model>
+
+    <!-- Rivet 2 -->
+    <model name="rivet_2">
+      <pose>0.45 -0.08 0.785 0 0 0.8</pose>
+      <link name="link">
+        <collision name="c"><geometry><cylinder><radius>0.004</radius><length>0.015</length></cylinder></geometry></collision>
+        <visual name="v">
+          <geometry><cylinder><radius>0.004</radius><length>0.015</length></cylinder></geometry>
+          <material><ambient>0.8 0.5 0.1 1</ambient><diffuse>0.8 0.5 0.1 1</diffuse></material>
+        </visual>
+        <inertial><mass>0.004</mass></inertial>
+      </link>
+    </model>
+
+    <!-- Washer -->
+    <model name="washer_1">
+      <pose>0.32 -0.02 0.782 1.5707 0 0</pose>
+      <link name="link">
+        <collision name="c"><geometry><cylinder><radius>0.010</radius><length>0.003</length></cylinder></geometry></collision>
+        <visual name="v">
+          <geometry><cylinder><radius>0.010</radius><length>0.003</length></cylinder></geometry>
+          <material><ambient>0.5 0.5 0.5 1</ambient><diffuse>0.6 0.6 0.6 1</diffuse></material>
+        </visual>
+        <inertial><mass>0.008</mass></inertial>
+      </link>
+    </model>
+
+    <!-- Bolt -->
+    <model name="bolt_1">
+      <pose>0.48 0.10 0.785 0 0 0</pose>
+      <link name="link">
+        <collision name="c"><geometry><cylinder><radius>0.007</radius><length>0.030</length></cylinder></geometry></collision>
+        <visual name="v">
+          <geometry><cylinder><radius>0.007</radius><length>0.030</length></cylinder></geometry>
+          <material><ambient>0.4 0.4 0.5 1</ambient><diffuse>0.5 0.5 0.6 1</diffuse></material>
+        </visual>
+        <inertial><mass>0.018</mass></inertial>
+      </link>
+    </model>
+
+  </world>
+</sdf>

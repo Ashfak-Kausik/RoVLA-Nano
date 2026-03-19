@@ -1,0 +1,77 @@
+# vla_system/config/vla_params.yaml
+# ─────────────────────────────────────────────────────────────────────────────
+# All VLA system parameters in one place.
+# Override at launch: ros2 launch vla_system vla_full.launch.py
+# or pass directly:   --ros-args --params-file config/vla_params.yaml
+# ─────────────────────────────────────────────────────────────────────────────
+
+vision_node:
+  ros__parameters:
+    # Path to YOLO model weights (.pt file)
+    # Download: yolo11n.pt (nano, fastest) or yolo11s.pt (small, balanced)
+    model_path: "yolo11n.pt"
+
+    # Minimum detection confidence to publish (0.0–1.0)
+    conf_threshold: 0.50
+
+    # Only publish these object classes (empty list = all classes)
+    class_filter:
+      - "screw"
+      - "rivet"
+      - "washer"
+      - "bolt"
+      - "nut"
+
+    # Set true to use mock detections (no camera required)
+    use_mock: true
+
+    # Detection rate limit in Hz (prevents flooding the coordinator)
+    publish_rate_hz: 10.0
+
+language_node:
+  ros__parameters:
+    # "rule"  → fast regex/keyword parser (no API key required)
+    # "llm"   → Claude API for complex commands (requires ANTHROPIC_API_KEY)
+    parser_mode: "rule"
+
+task_coordinator:
+  ros__parameters:
+    # How long (seconds) to keep a detection in the buffer before expiring it
+    object_timeout_sec: 3.0
+
+    # Minimum detection confidence to act on
+    min_confidence: 0.60
+
+    # Max seconds to wait for the object to appear before giving up
+    search_timeout_sec: 5.0
+
+    # Number of retry attempts when an object isn't detected yet
+    max_retries: 5
+
+action_node:
+  ros__parameters:
+    # Set true to use mock MoveIt2 (logs moves, no robot required)
+    use_mock: true
+
+    # Approach height above object before descending to grasp (metres)
+    pre_grasp_z_offset: 0.12
+
+    # Small clearance at grasp contact point (metres)
+    grasp_z_offset: 0.005
+
+    # Lift height after grasping (metres)
+    post_grasp_lift: 0.15
+
+    # MoveIt2 planning time limit (seconds)
+    planning_time: 5.0
+
+    # Named joint-space goal to return to after each task
+    home_config: "ready"
+
+    # Bin positions in robot base_link frame (x, y, z in metres)
+    # Adjust to match your Gazebo scene or real table layout
+    bin_positions:
+      bin_A: [0.50, -0.20, 0.05]
+      bin_B: [0.50,  0.00, 0.05]
+      bin_C: [0.50,  0.20, 0.05]
+      tray:  [0.45,  0.10, 0.10]

@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>vla_system</name>
+  <version>0.1.0</version>
+  <description>Meta-package: launch files, config, and CLI for the VLA system</description>
+  <maintainer email="you@example.com">VLA Developer</maintainer>
+  <license>MIT</license>
+
+  <buildtool_depend>ament_python</buildtool_depend>
+
+  <depend>rclpy</depend>
+  <depend>std_msgs</depend>
+  <depend>vla_interfaces</depend>
+  <depend>vision_node</depend>
+  <depend>language_node</depend>
+  <depend>coordinator_node</depend>
+  <depend>action_node</depend>
+
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>

@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>coordinator_node</name>
+  <version>0.1.0</version>
+  <description>VLA task coordinator — orchestrates vision and action pipeline</description>
+  <maintainer email="you@example.com">VLA Developer</maintainer>
+  <license>MIT</license>
+
+  <buildtool_depend>ament_python</buildtool_depend>
+
+  <depend>rclpy</depend>
+  <depend>std_msgs</depend>
+  <depend>vla_interfaces</depend>
+
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>
